@@ -1,0 +1,11 @@
+[package]
+name = "simd_position"
+version = "0.1.0"
+authors = ["philippeitis <33013301+philippeitis@users.noreply.github.com>"]
+edition = "2018"
+
+[[bench]]
+name = "benchmarks"
+path = "src/benchmarks/bench.rs"
+
+[dependencies]
