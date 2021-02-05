@@ -1,6 +1,6 @@
 #![feature(test)]
 extern crate test;
-extern crate untitled1;
+extern crate simd_position;
 
 macro_rules! bench_position_eq {
     ($size:literal, $typ:ty, $fn1:ident, $fn2:ident) => {
@@ -42,7 +42,8 @@ macro_rules! bench_first_nonzero {
 
 mod bench {
     use test::Bencher;
-    use untitled1::Position;
+    use simd_position::Position;
+
     bench_position_eq!(
         10,
         u8,
