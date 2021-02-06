@@ -1,5 +1,6 @@
 #![feature(test)]
 extern crate test;
+
 extern crate simd_position;
 
 macro_rules! bench_position_eq {
@@ -42,6 +43,7 @@ macro_rules! bench_first_nonzero {
 
 mod bench {
     use test::Bencher;
+
     use simd_position::Position;
 
     bench_position_eq!(

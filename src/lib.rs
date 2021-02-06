@@ -17,13 +17,13 @@ pub trait Position<N: Sized>: Position128<N> {
     fn find_value_ne(self, value: N) -> Option<usize>;
 }
 
-pub trait Position128<N: Sized>    {
+pub trait Position128<N: Sized> {
     fn find_value_eq_128(self, value: N) -> Option<usize>;
 
     fn find_value_ne_128(self, value: N) -> Option<usize>;
 }
 
-pub trait Position256<N: Sized>    {
+pub trait Position256<N: Sized> {
     fn find_value_eq_256(self, value: N) -> Option<usize>;
 
     fn find_value_ne_256(self, value: N) -> Option<usize>;
@@ -59,18 +59,26 @@ pub trait PositionOps256: Sized {
     fn get_index_in_mask_256(mask: i32) -> Option<usize>;
 }
 
-impl<N> Position128<N> for &[N] where N: PositionOps128<Register=__m128i> + PartialEq + Copy {
+impl<N> Position128<N> for &[N]
+where
+    N: PositionOps128<Register = __m128i> + PartialEq + Copy,
+{
     fn find_value_eq_128(self, value: N) -> Option<usize> {
         let cmp = value.fill_register_128();
         for (index, chunk) in self.chunks_exact(N::chunk_size_128()).enumerate() {
-            let vals = unsafe { _mm_loadu_si128(chunk.as_ptr() as *const _)};
+            let vals = unsafe { _mm_loadu_si128(chunk.as_ptr() as *const _) };
             let eqmask = N::cmp_reg_eq_128(cmp, vals);
             let mask = unsafe { _mm_movemask_epi8(eqmask) };
             if let Some(sub_index) = N::get_index_in_mask_128(mask) {
                 return Some((index * N::chunk_size_128()) + sub_index);
             }
         }
-        for (index, &val) in self.chunks_exact(N::chunk_size_128()).remainder().iter().enumerate() {
+        for (index, &val) in self
+            .chunks_exact(N::chunk_size_128())
+            .remainder()
+            .iter()
+            .enumerate()
+        {
             if val == value {
                 return Some(index + (self.len() & !(N::chunk_size_128() - 1)));
             }
@@ -82,14 +90,19 @@ impl<N> Position128<N> for &[N] where N: PositionOps128<Register=__m128i> + Part
     fn find_value_ne_128(self, value: N) -> Option<usize> {
         let cmp = value.fill_register_128();
         for (index, chunk) in self.chunks_exact(N::chunk_size_128()).enumerate() {
-            let vals = unsafe { _mm_loadu_si128(chunk.as_ptr() as *const _)};
+            let vals = unsafe { _mm_loadu_si128(chunk.as_ptr() as *const _) };
             let eqmask = N::cmp_reg_eq_128(cmp, vals);
             let mask = unsafe { !_mm_movemask_epi8(eqmask) };
             if let Some(sub_index) = N::get_index_in_mask_128(mask) {
                 return Some((index * N::chunk_size_128()) + sub_index);
             }
         }
-        for (index, &val) in self.chunks_exact(N::chunk_size_128()).remainder().iter().enumerate() {
+        for (index, &val) in self
+            .chunks_exact(N::chunk_size_128())
+            .remainder()
+            .iter()
+            .enumerate()
+        {
             if val != value {
                 return Some(index + (self.len() & !(N::chunk_size_128() - 1)));
             }
@@ -99,18 +112,26 @@ impl<N> Position128<N> for &[N] where N: PositionOps128<Register=__m128i> + Part
     }
 }
 
-impl<N> Position256<N> for &[N] where N: PositionOps256<Register=__m256i> + PartialEq + Copy {
+impl<N> Position256<N> for &[N]
+where
+    N: PositionOps256<Register = __m256i> + PartialEq + Copy,
+{
     fn find_value_eq_256(self, value: N) -> Option<usize> {
         let cmp = value.fill_register_256();
         for (index, chunk) in self.chunks_exact(N::chunk_size_256()).enumerate() {
-            let vals = unsafe { _mm256_loadu_si256(chunk.as_ptr() as *const _)};
+            let vals = unsafe { _mm256_loadu_si256(chunk.as_ptr() as *const _) };
             let eqmask = N::cmp_reg_eq_256(cmp, vals);
             let mask = unsafe { _mm256_movemask_epi8(eqmask) };
             if let Some(sub_index) = N::get_index_in_mask_256(mask) {
                 return Some((index * N::chunk_size_256()) + sub_index);
             }
         }
-        for (index, &val) in self.chunks_exact(N::chunk_size_256()).remainder().iter().enumerate() {
+        for (index, &val) in self
+            .chunks_exact(N::chunk_size_256())
+            .remainder()
+            .iter()
+            .enumerate()
+        {
             if val == value {
                 return Some(index + (self.len() & !(N::chunk_size_256() - 1)));
             }
@@ -122,14 +143,19 @@ impl<N> Position256<N> for &[N] where N: PositionOps256<Register=__m256i> + Part
     fn find_value_ne_256(self, value: N) -> Option<usize> {
         let cmp = value.fill_register_256();
         for (index, chunk) in self.chunks_exact(N::chunk_size_256()).enumerate() {
-            let vals = unsafe { _mm256_loadu_si256(chunk.as_ptr() as *const _)};
+            let vals = unsafe { _mm256_loadu_si256(chunk.as_ptr() as *const _) };
             let eqmask = N::cmp_reg_eq_256(cmp, vals);
             let mask = unsafe { !_mm256_movemask_epi8(eqmask) };
             if let Some(sub_index) = N::get_index_in_mask_256(mask) {
                 return Some((index * N::chunk_size_256()) + sub_index);
             }
         }
-        for (index, &val) in self.chunks_exact(N::chunk_size_256()).remainder().iter().enumerate() {
+        for (index, &val) in self
+            .chunks_exact(N::chunk_size_256())
+            .remainder()
+            .iter()
+            .enumerate()
+        {
             if val != value {
                 return Some(index + (self.len() & !(N::chunk_size_256() - 1)));
             }
@@ -139,7 +165,14 @@ impl<N> Position256<N> for &[N] where N: PositionOps256<Register=__m256i> + Part
     }
 }
 
-impl<N> Position<N> for &[N] where N: Sized + Copy + PositionOps128<Register=__m128i> + PositionOps256<Register=__m256i> + PartialEq {
+impl<N> Position<N> for &[N]
+where
+    N: Sized
+        + Copy
+        + PositionOps128<Register = __m128i>
+        + PositionOps256<Register = __m256i>
+        + PartialEq,
+{
     fn find_value_eq(self, value: N) -> Option<usize> {
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         {
@@ -162,7 +195,6 @@ impl<N> Position<N> for &[N] where N: Sized + Copy + PositionOps128<Register=__m
             };
         }
         self.iter().position(|x| x.ne(&value))
-
     }
 }
 
@@ -178,8 +210,6 @@ impl PositionOps128 for u8 {
     fn cmp_reg_eq_128(a: Self::Register, b: Self::Register) -> Self::Register {
         unsafe { _mm_cmpeq_epi8(a, b) }
     }
-
-
 
     #[inline(always)]
     fn get_index_in_mask_128(mask: i32) -> Option<usize> {
@@ -376,7 +406,6 @@ impl PositionOps256 for u8 {
         unsafe { _mm256_set1_epi8(self as i8) }
     }
 
-
     #[inline(always)]
     fn cmp_reg_eq_256(a: Self::Register, b: Self::Register) -> Self::Register {
         unsafe { _mm256_cmpeq_epi8(a, b) }
@@ -400,7 +429,6 @@ impl PositionOps256 for i8 {
     fn fill_register_256(self) -> Self::Register {
         unsafe { _mm256_set1_epi8(self) }
     }
-
 
     #[inline(always)]
     fn cmp_reg_eq_256(a: Self::Register, b: Self::Register) -> Self::Register {
@@ -566,7 +594,6 @@ impl PositionOps256 for i64 {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     macro_rules! test_position_impl {
@@ -625,13 +652,53 @@ mod tests {
 
     use crate::Position;
 
-    test_position_impl!(u8, test_u8_find_eq_short, test_u8_find_eq_medium, test_u8_find_ne_long);
-    test_position_impl!(u16, test_u16_find_eq_short, test_u16_find_eq_medium, test_u16_find_ne_long);
-    test_position_impl!(u32, test_u32_find_eq_short, test_u32_find_eq_medium, test_u32_find_ne_long);
-    test_position_impl!(u64, test_u64_find_eq_short, test_u64_find_eq_medium, test_u64_find_ne_long);
+    test_position_impl!(
+        u8,
+        test_u8_find_eq_short,
+        test_u8_find_eq_medium,
+        test_u8_find_ne_long
+    );
+    test_position_impl!(
+        u16,
+        test_u16_find_eq_short,
+        test_u16_find_eq_medium,
+        test_u16_find_ne_long
+    );
+    test_position_impl!(
+        u32,
+        test_u32_find_eq_short,
+        test_u32_find_eq_medium,
+        test_u32_find_ne_long
+    );
+    test_position_impl!(
+        u64,
+        test_u64_find_eq_short,
+        test_u64_find_eq_medium,
+        test_u64_find_ne_long
+    );
 
-    test_position_signed_impl!(i8, test_i8_find_eq_short, test_i8_find_eq_medium, test_i8_find_ne_long);
-    test_position_signed_impl!(i16, test_i16_find_eq_short, test_i16_find_eq_medium, test_i16_find_ne_long);
-    test_position_signed_impl!(i32, test_i32_find_eq_short, test_i32_find_eq_medium, test_i32_find_ne_long);
-    test_position_signed_impl!(i64, test_i64_find_eq_short, test_i64_find_eq_medium, test_i64_find_ne_long);
+    test_position_signed_impl!(
+        i8,
+        test_i8_find_eq_short,
+        test_i8_find_eq_medium,
+        test_i8_find_ne_long
+    );
+    test_position_signed_impl!(
+        i16,
+        test_i16_find_eq_short,
+        test_i16_find_eq_medium,
+        test_i16_find_ne_long
+    );
+    test_position_signed_impl!(
+        i32,
+        test_i32_find_eq_short,
+        test_i32_find_eq_medium,
+        test_i32_find_ne_long
+    );
+    test_position_signed_impl!(
+        i64,
+        test_i64_find_eq_short,
+        test_i64_find_eq_medium,
+        test_i64_find_ne_long
+    );
 }
